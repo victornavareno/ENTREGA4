@@ -8,16 +8,18 @@ bool MaestroParoYEspera(interface_t *interfaz, unsigned char mac_origen[6], unsi
     cout << "Seleccione el tipo de operacion: " << endl;
     cout << "[1] Operacion seleccion. " << endl;
     cout << "[2] Operacion sondeo. " << endl;
-    cout << "[3] Salir. " << endl;
+    cout << "[3] Salir. " << endl
+         << endl;
 
     unsigned char teclaPulsada = getch();
     if (teclaPulsada == '1') // MODO SELECCION MAESTRO
     {
-        cout << "PULSADO : 1" << endl;
+        cout << "PULSADO : 1 - Iniciando seleccion..." << endl;
         MaestroSeleccion(interfaz, mac_origen, mac_destino, tipo);
     }
     else if (teclaPulsada == '2') // MODO SONDEO MAESTRO
     {
+        cout << "PULSADO : 2 - Iniciando sondeo..." << endl;
         MaestroSondeo(interfaz, mac_origen, mac_destino, tipo);
     }
     else if (teclaPulsada == '3') // SALIR
@@ -27,14 +29,14 @@ bool MaestroParoYEspera(interface_t *interfaz, unsigned char mac_origen[6], unsi
     }
     else
         cout << "TECLA INVALIDA" << endl; // BREAK O ALGO ASI
-        return false;
+    return false;
 }
 
 void MaestroSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2])
 {
     unsigned char direccion = 'R'; // El valor de Dirección será ‘R’ operación de Selección - 'T' operación de Sondeo
 
-    unsigned char control = 5; // Depende del tipo de trama de control que se use:
+    unsigned char control = 5; // Al principio enviamos una trama ENQ para saber si el esclavo esta listo
                                // • Trama de control ENQ:  Valor 05.
                                // • Trama de control EOT:  Valor 04.
                                // • Trama de control ACK:  Valor 06.
@@ -43,7 +45,7 @@ void MaestroSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
 
     unsigned char numeroTrama = '0'; // oscilará entre los valores ‘0’ y ‘1’ (como carácter, no int ni nada raro)
 
-    // Enviamos la trama de control
+    // Enviamos la trama de control /* DIRECCION // CONTROL // NUMERO DE TRAMA */
     EnviarTramaControl(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama);
 
     // Mostramos la trama enviada por pantalla (POR ESO LA 'E') LA RECIBIDA MOSTRARA 'R'
@@ -57,6 +59,7 @@ void MaestroSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
     if (control == 6)
     {
         MostrarTrama('R', direccion, control, numeroTrama, ' ');
+        cout << endl;
     }
 
     // Envio de fichero en Paro y espera (SOLO MAESTRO)
@@ -65,6 +68,7 @@ void MaestroSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
 
     // Envio de la trama 'EOT' para indicar fin de envio
     EnviarTramaControl(interfaz, mac_origen, mac_destino, tipo, direccion, 4, '0');
+    MostrarTrama('E', direccion, 4, numeroTrama, ' ');
 
     // Seguimos recibiendo tramas de control
     RecibirTramaControl(interfaz, direccion, control, numeroTrama);
@@ -120,21 +124,24 @@ void EsclavoSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
 }
 
 // Recibe las tramas de control que envia el maestro
-void EsclavoParoYEspera(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2]) {
+void EsclavoParoYEspera(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2])
+{
     printf("Estas en modo esclavo\n\n");
     unsigned char direccion, control, NTrama;
 
     RecibirTramaControl(interfaz, direccion, control, NTrama);
 
-    if(direccion == 'R') { // SI RECIBE UNA R ES PROTOCOLO SELECCION
+    if (direccion == 'R')
+    { // SI RECIBE UNA R ES PROTOCOLO SELECCION
         MostrarTrama('R', direccion, control, NTrama, ' ');
-        EsclavoSeleccion(interfaz, mac_origen, mac_destino, tipo ,direccion, control, NTrama);
+        EsclavoSeleccion(interfaz, mac_origen, mac_destino, tipo, direccion, control, NTrama);
     }
 
-    if(direccion == 'T') { // SI RECIBE UNA 'T' ES PROTOCOLO SONDEO
+    if (direccion == 'T')
+    { // SI RECIBE UNA 'T' ES PROTOCOLO SONDEO
         MostrarTrama('R', direccion, control, NTrama, ' ');
-        EsclavoSondeo(interfaz, mac_origen, mac_destino, tipo ,direccion, control, NTrama);
-    }       
+        EsclavoSondeo(interfaz, mac_origen, mac_destino, tipo, direccion, control, NTrama);
+    }
 }
 
 void EnviarTramaControl(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2], unsigned char direccion, unsigned char control, unsigned char numeroTrama)
@@ -154,14 +161,16 @@ void EnviarTramaControl(interface_t *interfaz, unsigned char mac_origen[6], unsi
 
     // liberamos memoria de la trama que hemos enviado
     free(tramaEnviada);
-}
 
+    // mostramos la trama enviada
+}
 // BCE SOLO NECESARIO PARA TRAMAS DE DATOS
 void MostrarTrama(unsigned char tipo, unsigned char direccion, unsigned char control, unsigned char numeroTrama, char BCE)
 {
     if (control == 2) // TRAMAS DE DATOS - STX
     {
-        cout << tipo << "  " << direccion << "  "  << "STX  " <<  numeroTrama << "  " << BCE << endl;
+        cout << tipo << "  " << direccion << "  "
+             << "STX  " << numeroTrama << "  " << BCE << endl;
     }
 
     else // TRAMAS DE CONTROL
@@ -206,7 +215,6 @@ void RecibirTramaControl(interface_t *interfaz, unsigned char &direccion, unsign
     }
 }
 
-
 // Envia las tramas de datos
 void EnviarTramaDatos(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2], unsigned char direccion, unsigned char control, unsigned char numeroTrama, unsigned char longitud, unsigned char cadena[], unsigned char BCE)
 {
@@ -233,38 +241,39 @@ void EnviarTramaDatos(interface_t *interfaz, unsigned char mac_origen[6], unsign
 // REEESCRIBIR PARA ANTICOPIA!! TODO TODO TODO TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO##~#@~@#~|@#~|@#~|@#~|@#~|@#~|@#4
 void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2], unsigned char direccion, unsigned char control, unsigned char numeroTrama)
 {
+    __fpurge(stdin);                      // limpiamos el input de teclado
     ifstream flujoLectura("EProtoc.txt"); // introduce aquí el archivo  y la ruta del fichero que deseas enviar
 
     char cadena[254]; // cadena a leer
-    unsigned char numeroTramaRecibida = ' ';
+    unsigned char numeroTramaRecibida;
     int longitud;             // longitud de la trama a enviar (sirve para calcular BCE)
     unsigned char correccion; // variable auxiliar para corregir la trama enviada
 
     int numErrores = 0; // cuenta el numero de errores introducidos
-    //__fpurge(stdin);
 
     if (flujoLectura.is_open())
     {
         while (!flujoLectura.eof())
         {
+            // COMPROBACION PULSACION F4 TODO - ENTREGA 5
+
             // Leemos del fichero e inicializamos los parametros
             flujoLectura.read(cadena, 254);
             longitud = flujoLectura.gcount();
             unsigned char BCE = CalculoBCE(longitud, cadena);
-            control = 2; // NUMERO PARA STX
+            control = 2; // NUMERO PARA STX // ESETAMOS ENVIANDO TRAMAS DE DATOS
 
-            // Introducimos el error si se ha pulsado F4
+            // SI HA PULSADO F4, INTRODUCIMOS EL ERROR...
             if (numErrores != 0)
             {
                 printf("INTRODUCIENDO ERROR\n");
                 correccion = cadena[0];
                 cadena[0] = 184;
-                numErrores--;
+                numErrores--; // disminuimos el numero de errores
             }
 
             // Enviamos la trama de datos
             EnviarTramaDatos(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama, longitud, (unsigned char *)cadena, BCE);
-            printf("\n");
 
             // Esperamos a recibir la trama de respuesta del esclavo:
             while (control != 6 || numeroTrama != numeroTramaRecibida)
@@ -278,7 +287,6 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
                     MostrarTrama('R', direccion, control, numeroTrama, ' ');
                     // ENVIAMOS LA RESPUESTA
                     EnviarTramaDatos(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama, longitud, (unsigned char *)cadena, BCE);
-                    printf("\n");
                 }
             }
             // Trama de respuesta:
@@ -287,24 +295,24 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
             // INVERTIMOS VALORES DE Numero de trama
             if (numeroTrama == '1')
                 numeroTrama = '0';
-
-            if (numeroTrama == '0')
+            
+            else if (numeroTrama == '0')
                 numeroTrama = '1';
         }
     }
     else
         cout << "   ####  ERROR AL ABRIR EL FICHERO  ####   " << endl;
-    // flujoLectura.close();
+    flujoLectura.close();
 }
-
 
 // Para calcular el valor del BCE de una trama se debe hacer la operación lógica XOR
 // dos a dos entre todos los caracteres de los datos correspondiente al contenido del fichero.
 char CalculoBCE(int longitudCadena, char cadena[])
 {
-    if (longitudCadena > 0) // Siempre debe ser mayor que 0
+        if (longitudCadena > 0) // Siempre debe ser mayor que 0
     {
-        char BCE = cadena[0];
+        char BCE;
+        BCE = cadena[0];
 
         for (int i = 1; i < longitudCadena; i++)
         {
@@ -313,7 +321,8 @@ char CalculoBCE(int longitudCadena, char cadena[])
 
         return BCE; // DEVUELVO UNA CADENA DE 0 Y 1 QUE CORRESPONDE CON EL BCE (IDENTIFICADOR)
     }
-    else return 0; // Error
+    else
+        return 0; // Error
 }
 
 void RecibirTramaParoyEspera(interface_t *interfaz, unsigned char &direccion, unsigned char &control, unsigned char &numeroTrama, char cadena[], unsigned char &longitud)
