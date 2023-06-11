@@ -35,24 +35,25 @@ void MaestroSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
     unsigned char direccion = 'R'; // El valor de Dirección será ‘R’ operación de Selección - 'T' operación de Sondeo
 
     unsigned char control = 5; // Depende del tipo de trama de control que se use:
-                               // • Trama de control ENQ: Valor 05.
-                               // • Trama de control EOT: Valor 04.
-                               // • Trama de control ACK: Valor 06.
+                               // • Trama de control ENQ:  Valor 05.
+                               // • Trama de control EOT:  Valor 04.
+                               // • Trama de control ACK:  Valor 06.
                                // • Trama de control NACK: Valor 21.
-                               // • Trama de datos - STX: Valor 02.
+                               // • Trama de datos - STX:  Valor 02.
 
     unsigned char numeroTrama = '0'; // oscilará entre los valores ‘0’ y ‘1’ (como carácter, no int ni nada raro)
 
     // Enviamos la trama de control
     EnviarTramaControl(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama);
 
-    // Mostramos la trama enviada por pantalla (POR ESO LA 'E')
+    // Mostramos la trama enviada por pantalla (POR ESO LA 'E') LA RECIBIDA MOSTRARA 'R'
     MostrarTrama('E', direccion, control, numeroTrama, ' ');
 
     // Seguimos recibiendo tramas de control
     RecibirTramaControl(interfaz, direccion, control, numeroTrama);
 
-    // Cuando recibamos una trama de control con valor control 6, la mostramos con una 'R', de recibida:
+    // Cuando recibamos una trama de control con valor control 6 (ACK), la mostramos con una 'R', de recibida:
+    // RECORDAMOS QUE ACK ES LA TRAMA DE CONFIRMACION, LA TRAMA ENVIADA HA SIDO RECIBIDA
     if (control == 6)
     {
         MostrarTrama('R', direccion, control, numeroTrama, ' ');
@@ -62,7 +63,7 @@ void MaestroSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
     EnviarFicheroParoyEspera(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama);
     cout << endl;
 
-    // // Envio de la trama 'EOT' para indicar fin de envio
+    // Envio de la trama 'EOT' para indicar fin de envio
     EnviarTramaControl(interfaz, mac_origen, mac_destino, tipo, direccion, 4, '0');
 
     // Seguimos recibiendo tramas de control
@@ -124,11 +125,13 @@ void EsclavoParoYEspera(interface_t *interfaz, unsigned char mac_origen[6], unsi
     unsigned char direccion, control, NTrama;
 
     RecibirTramaControl(interfaz, direccion, control, NTrama);
-    if(direccion == 'R') {
+
+    if(direccion == 'R') { // SI RECIBE UNA R ES PROTOCOLO SELECCION
         MostrarTrama('R', direccion, control, NTrama, ' ');
         EsclavoSeleccion(interfaz, mac_origen, mac_destino, tipo ,direccion, control, NTrama);
     }
-    if(direccion == 'T') {
+
+    if(direccion == 'T') { // SI RECIBE UNA 'T' ES PROTOCOLO SONDEO
         MostrarTrama('R', direccion, control, NTrama, ' ');
         EsclavoSondeo(interfaz, mac_origen, mac_destino, tipo ,direccion, control, NTrama);
     }       
