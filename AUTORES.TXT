@@ -1,0 +1,10 @@
+	
+	ENTREGA 3 REDES
+
+	AUTORES:
+		- Víctor Andrés Navareño Moza
+		- Javier Crespo Gómez
+
+	GRUPO 6 PRÁCTICAS - Miércoles de 10:00 a 11:30
+
+	PROGRAMA PRINCIPAL - main() : main.cpp
