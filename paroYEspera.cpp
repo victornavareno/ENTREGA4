@@ -101,7 +101,7 @@ void EsclavoSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
         RecibirTramaParoyEspera(interfaz, direccion, control, numeroTrama, cadena, longitud);
         if (control == 4)
         {
-            printf("\n");
+            cout << endl;
             MostrarTrama('R', direccion, control, numeroTrama, ' ');
             control = 6;
             fin = true;
@@ -111,7 +111,7 @@ void EsclavoSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
         {
             if (longitud != 0 && outputStream.is_open())
             {
-                outputStream.write(cadena, longitud);
+                outputStream.write(cadena, longitud); // ESCRIBIMOS EN EL FICHERO LA TRAMA RECIBIDA
                 control = 6;
             }
             else
@@ -120,6 +120,7 @@ void EsclavoSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
             }
         }
         EnviarTramaControl(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama);
+        MostrarTrama('E', direccion, control, numeroTrama, ' ');
     }
 
     outputStream.close();
@@ -173,9 +174,9 @@ void MostrarTrama(unsigned char tipo, unsigned char direccion, unsigned char con
     if (control == 2) // TRAMAS DE DATOS - STX
     {
         cout << tipo << "  " << direccion << "  "
-             << "STX  " << numeroTrama << " ";
+             << "STX  " << numeroTrama;
         // imprimir el BCE
-        printf(" %d\n", BCE);
+        printf("  %d", BCE);
     }
 
     else // TRAMAS DE CONTROL
@@ -240,6 +241,7 @@ void EnviarTramaDatos(interface_t *interfaz, unsigned char mac_origen[6], unsign
     unsigned char *trama = BuildFrame(mac_origen, mac_destino, tipo, datos);
     SendFrame(interfaz, trama, longitud + 5);
     MostrarTrama('E', direccion, control, numeroTrama, BCE);
+    cout << endl;
     free(trama);
 }
 
@@ -326,7 +328,6 @@ char CalculoBCE(int longitudCadena, char cadena[])
 void RecibirTramaParoyEspera(interface_t *interfaz, unsigned char &direccion, unsigned char &control, unsigned char &numeroTrama, char cadena[], unsigned char &longitud)
 {
     bool recibida = false;
-
     while (!recibida)
     {
         apacket_t trama = ReceiveFrame(interfaz);
@@ -337,23 +338,20 @@ void RecibirTramaParoyEspera(interface_t *interfaz, unsigned char &direccion, un
             control = trama.packet[15];
             numeroTrama = trama.packet[16];
 
-            // SI EL CONTROL ES STX, ES DECIR 2(TRAMA DE DATOS), LOS DATOS SE GUARDAN EN EL FICHERO DIRECTAMENTE
-            // E IMPRIMIMOS POR PANTALLA LA TRAMA RECIBIDA
             if (control == 2)
             {
                 longitud = trama.packet[17];
-                unsigned char BCE = trama.packet[18 + longitud];
+                unsigned char BCERecibido = trama.packet[18 + longitud];
 
-                for (int i = 0; i < longitud; i++)
-                    cadena[i] = trama.packet[18 + i];
+                for (int i = 0; i < longitud; i++){ cadena[i] = trama.packet[18 + i];}
 
-                unsigned char BCECalc = CalculoBCE(longitud, cadena);
+                unsigned char BCECalculado = CalculoBCE(longitud, cadena); // SERA EL BCE QUE CALCULE EL ESCLAVO Y RESPONDERA AFIRMATIVO SI ES IGUAL
+                if (BCECalculado != BCERecibido){
+                    longitud = 0; // reseteamos la longitud de la cadena si no coinciden (ERROR) 
+                }
 
-                if (BCECalc != BCE)
-                    longitud = 0;
-
-                MostrarTrama('R', direccion, control, numeroTrama, BCE);
-                cout << BCECalc << endl;
+                MostrarTrama('R', direccion, control, numeroTrama, BCERecibido);
+                printf(" %d\n", BCECalculado); // A CONTINUACION MOSTRAMOS EL BCE calculado por el esclavo para comparar
             }
         }
     }
