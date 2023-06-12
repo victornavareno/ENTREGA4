@@ -79,24 +79,26 @@ void MaestroSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
         MostrarTrama('R', direccion, control, numeroTrama, ' ');
     }
 
-    cout << "Fin de Seleccion por parte del Maestro" << endl;
+    cout << "Fin de Seleccion por parte del Maestro" << endl << endl;
 }
 
 void EsclavoSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2], unsigned char direccion, unsigned char control, unsigned char numeroTrama)
 {
+    // EN ESTE FICHERO ESCRIBIREMOS LAS TRAMAS RECIBIDAS
     ofstream outputStream;
     outputStream.open("RProtoc.txt");
+
+    // BUFFERED READER:
     char cadena[254];
     unsigned char longitud;
-    bool fin = false;
 
-    // ENVIAMOS LA TRAMA DE CONTROL (ACK)
+    // ENVIO LA TRAMA DE RESPUESTA CORRECTA(ACK) PARA ESTABLECER EL PROTOCOLO DE SELECCION
     EnviarTramaControl(interfaz, mac_origen, mac_destino, tipo, direccion, 6, numeroTrama);
 
-    while (control != 4 && !fin)
+    bool fin = false;
+    while (!fin && control != 4) 
     {
         RecibirTramaParoyEspera(interfaz, direccion, control, numeroTrama, cadena, longitud);
-
         if (control == 4)
         {
             printf("\n");
@@ -104,6 +106,7 @@ void EsclavoSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
             control = 6;
             fin = true;
         }
+        
         else
         {
             if (longitud != 0 && outputStream.is_open())
@@ -170,7 +173,7 @@ void MostrarTrama(unsigned char tipo, unsigned char direccion, unsigned char con
     if (control == 2) // TRAMAS DE DATOS - STX
     {
         cout << tipo << "  " << direccion << "  "
-             << "STX  " << numeroTrama << "  ";
+             << "STX  " << numeroTrama << " ";
         // imprimir el BCE
         printf(" %d\n", BCE);
     }
