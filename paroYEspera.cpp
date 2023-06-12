@@ -14,12 +14,12 @@ bool MaestroParoYEspera(interface_t *interfaz, unsigned char mac_origen[6], unsi
     unsigned char teclaPulsada = getch();
     if (teclaPulsada == '1') // MODO SELECCION MAESTRO
     {
-        cout << "PULSADO : 1 - Iniciando seleccion..." << endl;
+        cout << "PULSADO : 1 - Iniciando protocolo de seleccion..." << endl;
         MaestroSeleccion(interfaz, mac_origen, mac_destino, tipo);
     }
     else if (teclaPulsada == '2') // MODO SONDEO MAESTRO
     {
-        cout << "PULSADO : 2 - Iniciando sondeo..." << endl;
+        cout << "PULSADO : 2 - Iniciando protocolo de sondeo..." << endl;
         MaestroSondeo(interfaz, mac_origen, mac_destino, tipo);
     }
     else if (teclaPulsada == '3') // SALIR
@@ -170,7 +170,9 @@ void MostrarTrama(unsigned char tipo, unsigned char direccion, unsigned char con
     if (control == 2) // TRAMAS DE DATOS - STX
     {
         cout << tipo << "  " << direccion << "  "
-             << "STX  " << numeroTrama << "  " << BCE << endl;
+             << "STX  " << numeroTrama << "  ";
+        // imprimir el BCE
+        printf(" %d\n", BCE);
     }
 
     else // TRAMAS DE CONTROL
@@ -238,7 +240,7 @@ void EnviarTramaDatos(interface_t *interfaz, unsigned char mac_origen[6], unsign
     free(trama);
 }
 
-// REEESCRIBIR PARA ANTICOPIA!! TODO TODO TODO TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO##~#@~@#~|@#~|@#~|@#~|@#~|@#~|@#4
+// ENVIA EL FICHERO "EProtoc.txt" POR PARO Y ESPERA
 void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2], unsigned char direccion, unsigned char control, unsigned char numeroTrama)
 {
     __fpurge(stdin);                      // limpiamos el input de teclado
@@ -246,56 +248,50 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
 
     char cadena[254]; // cadena a leer
     unsigned char numeroTramaRecibida;
-    int longitud;             // longitud de la trama a enviar (sirve para calcular BCE)
+    numeroTramaRecibida = ' ';
+    int longitudCadena;       // longitud de la trama a enviar (sirve para calcular BCE)
     unsigned char correccion; // variable auxiliar para corregir la trama enviada
 
-    int numErrores = 0; // cuenta el numero de errores introducidos
+    // int numErrores = 0; // cuenta el numero de errores introducidos TODO VERSION 5
 
     if (flujoLectura.is_open())
     {
         while (!flujoLectura.eof())
         {
-            // COMPROBACION PULSACION F4 TODO - ENTREGA 5
-
-            // Leemos del fichero e inicializamos los parametros
+            // LEEMOS DE FICHERO
             flujoLectura.read(cadena, 254);
-            longitud = flujoLectura.gcount();
-            unsigned char BCE = CalculoBCE(longitud, cadena);
-            control = 2; // NUMERO PARA STX // ESETAMOS ENVIANDO TRAMAS DE DATOS
+            longitudCadena = flujoLectura.gcount();
+            unsigned char BCE = CalculoBCE(longitudCadena, cadena);
+            control = 2; // NUMERO PARA STX // ESTAMOS ENVIANDO TRAMAS DE DATOS
 
-            // SI HA PULSADO F4, INTRODUCIMOS EL ERROR...
-            if (numErrores != 0)
-            {
-                printf("INTRODUCIENDO ERROR\n");
-                correccion = cadena[0];
-                cadena[0] = 184;
-                numErrores--; // disminuimos el numero de errores
-            }
+            // SI HA PULSADO F4, INTRODUCIMOS EL ERROR... TODO VERSION 5
 
             // Enviamos la trama de datos
-            EnviarTramaDatos(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama, longitud, (unsigned char *)cadena, BCE);
+            EnviarTramaDatos(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama, longitudCadena, (unsigned char *)cadena, BCE);
 
             // Esperamos a recibir la trama de respuesta del esclavo:
+            // ACK -> CONTROL == 6
             while (control != 6 || numeroTrama != numeroTramaRecibida)
             {
                 RecibirTramaControl(interfaz, direccion, control, numeroTramaRecibida);
 
-                if (control == 21) // 21: Trama NACK - ERROR
-                {                  // Si envian una trama NACK, corregimos los datos y los enviamos de nuevo
-                    cadena[0] = correccion;
-                    control = 2;
-                    MostrarTrama('R', direccion, control, numeroTrama, ' ');
-                    // ENVIAMOS LA RESPUESTA
-                    EnviarTramaDatos(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama, longitud, (unsigned char *)cadena, BCE);
-                }
+                // TODO VERSION 5 INTRODUCCION DE ERROES
+                // if (control == 21) // 21: Trama NACK - ERROR
+                // {                  // Si envian una trama NACK, corregimos los datos y los enviamos de nuevo TODO VERSION 5
+                //     control = 2;
+                //     MostrarTrama('R', direccion, control, numeroTrama, ' ');
+                //     // ENVIAMOS LA RESPUESTA
+                //     EnviarTramaDatos(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama, longitudCadena, (unsigned char *)cadena, BCE);
+                // }
             }
-            // Trama de respuesta:
+
+            // Mostramos la trama de respuesta del esclavo:
             MostrarTrama('R', direccion, control, numeroTrama, ' ');
 
             // INVERTIMOS VALORES DE Numero de trama
             if (numeroTrama == '1')
                 numeroTrama = '0';
-            
+
             else if (numeroTrama == '0')
                 numeroTrama = '1';
         }
@@ -309,17 +305,16 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
 // dos a dos entre todos los caracteres de los datos correspondiente al contenido del fichero.
 char CalculoBCE(int longitudCadena, char cadena[])
 {
-        if (longitudCadena > 0) // Siempre debe ser mayor que 0
+    if (longitudCadena > 0) // Siempre debe ser mayor que 0
     {
         char BCE;
-        BCE = cadena[0];
+        BCE = cadena[0]; // inicializamos al primer valor (0)
 
         for (int i = 1; i < longitudCadena; i++)
         {
             BCE = BCE xor cadena[i];
         }
-
-        return BCE; // DEVUELVO UNA CADENA DE 0 Y 1 QUE CORRESPONDE CON EL BCE (IDENTIFICADOR)
+        return BCE;
     }
     else
         return 0; // Error

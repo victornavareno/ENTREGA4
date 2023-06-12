@@ -5,7 +5,6 @@
 
 // AUTORES:
 //  Víctor Andrés Navareño Moza
-//  Javier Crespo Gómez
 //  GRUPO 6 Prácticas - Miércoles 10:00 - 11:30
 
 #include <stdio.h>
