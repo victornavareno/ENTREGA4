@@ -249,6 +249,25 @@ void EnviarTramaDatos(interface_t *interfaz, unsigned char mac_origen[6], unsign
     free(trama);
 }
 
+// Comprueba si se ha pulsado la tecla F4 = '27 + O + S' 
+// Si se ha pulsado F4, cont I/O se incrementa. Usaremos este metodo para introducir errores pulsando f4
+void ComprobarPulsacionF4(int &cont) {
+    unsigned char teclaPulsada;
+    if(kbhit()) {
+        teclaPulsada = getch();
+        if(teclaPulsada == 27) {
+            teclaPulsada = getch();
+            if(teclaPulsada == 'O') {
+                teclaPulsada = getch();
+                if(teclaPulsada == 'S') {
+                    __fpurge(stdin);
+                    cont++;
+                }
+            }
+        }
+    }
+}
+
 // ENVIA EL FICHERO "EProtoc.txt" POR PARO Y ESPERA
 void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2], unsigned char direccion, unsigned char control, unsigned char numeroTrama)
 {
@@ -259,9 +278,10 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
     unsigned char numeroTramaRecibida;
     numeroTramaRecibida = ' ';
     int longitudCadena;       // longitud de la trama a enviar (sirve para calcular BCE)
-    unsigned char correccion; // variable auxiliar para corregir la trama enviada
 
-    // int numErrores = 0; // cuenta el numero de errores introducidos TODO VERSION 5
+    // INTRODUCCION DE ERRORES AL PULSAR F4 - VERSION 5
+    unsigned char correccion; // variable auxiliar para corregir la trama enviada
+    int numErrores = 0; // cuenta el numero de errores introducidos TODO VERSION 5
 
     if (flujoLectura.is_open())
     {
@@ -273,9 +293,18 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
             unsigned char BCE = CalculoBCE(longitudCadena, cadena);
             control = 2; // NUMERO PARA STX // ESTAMOS ENVIANDO TRAMAS DE DATOS
 
-            // SI HA PULSADO F4, INTRODUCIMOS EL ERROR... TODO VERSION 5
+            // SI SE HA PULSADO F4, INCREMENTO numErrores
+            ComprobarPulsacionF4(numErrores);
 
-            // Enviamos la trama de datos
+            // Introducimos el error si se ha pulsado F4
+            if(numErrores != 0) {
+                cout << "INTRODUCIENDO ERROR..." << endl;
+                correccion = cadena[0]; // Guardamos aqui el dato correcto para luego
+                cadena[0] = 184; // Introducimos el caracter especial (Error)
+                numErrores--;
+            }
+
+            // Enviamos la trama de datos (QUE AHORA PUEDE CONTENER ERRORES)
             EnviarTramaDatos(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama, longitudCadena, (unsigned char *)cadena, BCE);
 
             // Esperamos a recibir la trama de respuesta del esclavo:

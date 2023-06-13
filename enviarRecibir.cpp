@@ -93,7 +93,7 @@ void SeleccionModoEnvio(int modo, int numGrupo, interface_t *interfaz, unsigned 
 
                             else if (teclaPulsada == 'R')
                             {
-                                printf("MODO ELEGIDO = F3 'Protocolo de paro y espera'\n"); // Protocolo de paro y espera para el maestro                                                                   // F3 PROTOCOLO DE PARO Y ESPERA
+                                cout << "MODO ELEGIDO = F3 'Protocolo de paro y espera'" << endl; // Protocolo de paro y espera para el maestro                                                                   // F3 PROTOCOLO DE PARO Y ESPERA
                                 while(!MaestroParoYEspera(interfaz, mac_src, mac_destino, tipo));
                             }
                             
