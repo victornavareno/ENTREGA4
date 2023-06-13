@@ -64,7 +64,6 @@ void MaestroSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
 
     // Envio de fichero en Paro y espera (SOLO MAESTRO)
     EnviarFicheroParoyEspera(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama);
-    cout << endl;
 
     // Envio de la trama 'EOT' para indicar fin de envio
     EnviarTramaControl(interfaz, mac_origen, mac_destino, tipo, direccion, 4, '0');
@@ -79,7 +78,8 @@ void MaestroSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
         MostrarTrama('R', direccion, control, numeroTrama, ' ');
     }
 
-    cout << "Fin de Seleccion por parte del Maestro" << endl << endl;
+    cout << "Fin de Seleccion por parte del Maestro" << endl
+         << endl;
 }
 
 void EsclavoSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2], unsigned char direccion, unsigned char control, unsigned char numeroTrama)
@@ -96,7 +96,7 @@ void EsclavoSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
     EnviarTramaControl(interfaz, mac_origen, mac_destino, tipo, direccion, 6, numeroTrama);
 
     bool fin = false;
-    while (!fin && control != 4) 
+    while (!fin && control != 4)
     {
         RecibirTramaParoyEspera(interfaz, direccion, control, numeroTrama, cadena, longitud);
         if (control == 4)
@@ -106,7 +106,7 @@ void EsclavoSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
             control = 6;
             fin = true;
         }
-        
+
         else
         {
             if (longitud != 0 && outputStream.is_open())
@@ -130,7 +130,7 @@ void EsclavoSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
 // Recibe las tramas de control que envia el maestro
 void EsclavoParoYEspera(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2])
 {
-    printf("Estas en modo esclavo\n\n");
+    cout << "Estas en modo esclavo" << endl;
     unsigned char direccion, control, NTrama;
 
     RecibirTramaControl(interfaz, direccion, control, NTrama);
@@ -168,6 +168,7 @@ void EnviarTramaControl(interface_t *interfaz, unsigned char mac_origen[6], unsi
 
     // mostramos la trama enviada
 }
+
 // BCE SOLO NECESARIO PARA TRAMAS DE DATOS
 void MostrarTrama(unsigned char tipo, unsigned char direccion, unsigned char control, unsigned char numeroTrama, char BCE)
 {
@@ -293,7 +294,7 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
             // Mostramos la trama de respuesta del esclavo:
             MostrarTrama('R', direccion, control, numeroTrama, ' ');
 
-            // INVERTIMOS VALORES DE Numero de trama
+            // INVERTIMOS VALORES DE numeroTrama PARA EL SIGUIENTE ENVIO
             if (numeroTrama == '1')
                 numeroTrama = '0';
 
@@ -301,8 +302,11 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
                 numeroTrama = '1';
         }
     }
-    else
+    else{
         cout << "   ####  ERROR AL ABRIR EL FICHERO  ####   " << endl;
+    }
+
+    cout << endl;
     flujoLectura.close();
 }
 
@@ -343,11 +347,15 @@ void RecibirTramaParoyEspera(interface_t *interfaz, unsigned char &direccion, un
                 longitud = trama.packet[17];
                 unsigned char BCERecibido = trama.packet[18 + longitud];
 
-                for (int i = 0; i < longitud; i++){ cadena[i] = trama.packet[18 + i];}
+                for (int i = 0; i < longitud; i++)
+                {
+                    cadena[i] = trama.packet[18 + i];
+                }
 
                 unsigned char BCECalculado = CalculoBCE(longitud, cadena); // SERA EL BCE QUE CALCULE EL ESCLAVO Y RESPONDERA AFIRMATIVO SI ES IGUAL
-                if (BCECalculado != BCERecibido){
-                    longitud = 0; // reseteamos la longitud de la cadena si no coinciden (ERROR) 
+                if (BCECalculado != BCERecibido)
+                {
+                    longitud = 0; // reseteamos la longitud de la cadena si no coinciden (ERROR)
                 }
 
                 MostrarTrama('R', direccion, control, numeroTrama, BCERecibido);
