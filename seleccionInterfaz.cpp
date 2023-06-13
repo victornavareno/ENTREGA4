@@ -61,9 +61,9 @@ void usuarioIntroduceInterfaz()
 
 void imprimirMac(interface_t interfaz)
 {
-    interface_t * ifacePtrAux;
+    interface_t *ifacePtrAux;
     ifacePtrAux = new interface_t; // reservo memoria para el puntero auxiliar
-    GetMACAdapter(&interfaz); // obtenemos la direccion MAC de la interfaz elegida por el usuario
+    GetMACAdapter(&interfaz);      // obtenemos la direccion MAC de la interfaz elegida por el usuario
     printf("La MAC es: ");
 
     // asumimos que el una mac tiene 6 dígitos hexadecimales

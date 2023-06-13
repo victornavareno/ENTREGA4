@@ -25,7 +25,7 @@ void RecibirTramaEsclavo(int numGrupo, interface_t *interfaz, unsigned char mac_
 
 void EnviarCaracter(interface_t *iface, char _dato, unsigned char mac_src[6], unsigned char mac_dst[6], unsigned char type[2]);
 
-void EnviarFichero(interface_t *interfaz, unsigned char mac_src[6], unsigned char mac_destino[6], unsigned char tipo[2]);
+bool EnviarFichero(interface_t *interfaz, unsigned char mac_src[6], unsigned char mac_destino[6], unsigned char tipo[2]);
 
 char RecibirCaracter(interface_t *iface);
 

@@ -49,7 +49,6 @@ int main()
     {
         cout << "Puerto abierto correctamente" << endl;
     }
-
     modoEstacion = SeleccionModoEstacion();
 
     if (modoEstacion == 1)

@@ -3,7 +3,6 @@
 void RecibirEsclavo(interface_t *interfaz, int numGrupo)
 {
     __fpurge(stdin);       // limpiamos el buffer de teclado
-    bool cabecera = false; // nos servira para imprimir por pantalla que un fichero ha sido enviado
 
     while (!kbhit())
     {
@@ -12,13 +11,7 @@ void RecibirEsclavo(interface_t *interfaz, int numGrupo)
         if (tramaRecibida.packet != NULL && (tramaRecibida.packet[12] == (48 + numGrupo) && tramaRecibida.packet[13] == 0))
         {
             // cout << "LA LONGITUD DE LA TRAMA ES " << tramaRecibida.header.len << " BYTES" << endl;
-            if (tramaRecibida.header.len == 15)
-                cout << "Recibido: ";
-            else if (cabecera == false)
-            {
-                cout << "     Fichero Recibido:     " << endl;
-                cabecera = true;
-            }
+            cout << "Recibido: ";
 
             char vectorCaracteres[tramaRecibida.header.len - 14];
             int j = 0;
@@ -88,16 +81,14 @@ void SeleccionModoEnvio(int modo, int numGrupo, interface_t *interfaz, unsigned 
                             else if (teclaPulsada == 'Q') // F2 ENVIO DE FICHERO
                             {
                                 cout << "MODO ELEGIDO = F2 'Enviando un fichero...' " << endl; // Envio de un fichero
-                                EnviarFichero(interfaz, mac_src, mac_destino, tipo);
+                                while(!EnviarFichero(interfaz, mac_src, mac_destino, tipo));
                             }
 
                             else if (teclaPulsada == 'R')
                             {
-                                cout << "MODO ELEGIDO = F3 'Protocolo de paro y espera'" << endl; // Protocolo de paro y espera para el maestro                                                                   // F3 PROTOCOLO DE PARO Y ESPERA
+                                cout << "MODO ELEGIDO = F3 'Protocolo de paro y espera'" << endl; // Protocolo de paro y espera para el maestro  
                                 while(!MaestroParoYEspera(interfaz, mac_src, mac_destino, tipo));
                             }
-                            
-                            // ANADIR ERRORES
 
                             else
                             {
@@ -130,14 +121,14 @@ void SeleccionModoEnvio(int modo, int numGrupo, interface_t *interfaz, unsigned 
                             teclaPulsada = getch();
                             if (teclaPulsada == 'P')
                             {
-                                cout << "MODO ELEGIDO = F1 'Envío de caracteres interactivo' " << endl; // Envio de caracteres interactivo
+                                cout << endl << "MODO ELEGIDO = F1 'Envío de caracteres interactivo' " << endl; // Envio de caracteres interactivo
                                 EnviarRecibirCaracter(interfaz, mac_src, mac_destino, tipo);
                             }
 
                             else if (teclaPulsada == 'R')
                             {                                                                      // F3 PROTOCOLO DE PARO Y ESPERA
-                                cout << "MODO ELEGIDO = F3 'Protocolo de paro y espera' " << endl; // Protocolo de paro y espera
-                                EsclavoParoYEspera(interfaz, mac_src, mac_destino, tipo);
+                                cout << endl << "MODO ELEGIDO = F3 'Protocolo de paro y espera' " << endl; // Protocolo de paro y espera
+                                while(!EsclavoParoYEspera(interfaz, mac_src, mac_destino, tipo));
                             }
                         }
                     }
@@ -276,7 +267,7 @@ void EnviarCaracter(interface_t *iface, char _dato, unsigned char mac_src[6], un
     free(trama);
 }
 
-void EnviarFichero(interface_t *interfaz, unsigned char mac_src[6], unsigned char mac_destino[6], unsigned char tipo[2])
+bool EnviarFichero(interface_t *interfaz, unsigned char mac_src[6], unsigned char mac_destino[6], unsigned char tipo[2])
 {
     GetMACAdapter(interfaz);
     ifstream flujoLectura("envio.txt"); // introduce aquí el archivo  y la ruta del fichero que deseas enviar
@@ -297,6 +288,9 @@ void EnviarFichero(interface_t *interfaz, unsigned char mac_src[6], unsigned cha
 
     else
         cout << "   ####  ERROR AL ABRIR EL FICHERO  ####   " << endl;
+    
+    // ########
+    return true; // Devolvemos el control al menu
 }
 
 char RecibirCaracter(interface_t *iface)

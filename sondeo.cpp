@@ -64,7 +64,8 @@ void MaestroSondeo(interface_t *interfaz, unsigned char mac_origen[6], unsigned 
             {
                 bool primeraIteracion = true;
 
-                if(primeraIteracion){
+                if (primeraIteracion)
+                {
                     cout << endl;
                     MostrarTrama('R', direccion, control, numeroTrama, ' '); // chapucilla pero bueno... funciona
                 }
@@ -75,7 +76,7 @@ void MaestroSondeo(interface_t *interfaz, unsigned char mac_origen[6], unsigned 
                 teclaPulsada = getch(); // INPUT DEL USUARIO
 
                 if (teclaPulsada == '2') // PULSACION DE 2: CONTINUAMOS CON LA COMUNICACION ENVIANDO TRAMA NACK (21)
-                {   
+                {
                     EnviarTramaControl(interfaz, mac_origen, mac_destino, tipo, direccion, 21, numeroTrama);
                     cout << endl;
                     MostrarTrama('E', direccion, 21, numeroTrama, ' ');
@@ -100,7 +101,6 @@ void MaestroSondeo(interface_t *interfaz, unsigned char mac_origen[6], unsigned 
                 }
             }
         }
-
         // ENVIAMOS Y MOSTRAMOS LA TRAMA FINAL CONTROL DE RESPUESTA ACK
         EnviarTramaControl(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama);
         MostrarTrama('E', direccion, control, numeroTrama, ' ');
@@ -150,6 +150,4 @@ void EsclavoSondeo(interface_t *interfaz, unsigned char mac_origen[6], unsigned 
 
     cout << endl
          << "Fin de sondeo por parte del Esclavo";
-    cout << endl
-         << "Pulse Esc para salir..." << endl;
 }

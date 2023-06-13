@@ -31,7 +31,7 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
 // CALCULA EL BCE 
 char CalculoBCE(int longitud, char cadena[]);
 
-void EsclavoParoYEspera(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2]);
+bool EsclavoParoYEspera(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2]);
 
 // RECIBIR TRAMAS EN PROTOCOLO PARO Y ESPERA
 void RecibirTramaParoyEspera(interface_t *interfaz, unsigned char &direccion, unsigned char &control, unsigned char &numeroTrama, char cadena[], unsigned char &longitud);
