@@ -77,8 +77,8 @@ void MaestroSondeo(interface_t *interfaz, unsigned char mac_origen[6], unsigned 
                 if (teclaPulsada == '2') // PULSACION DE 2: CONTINUAMOS CON LA COMUNICACION ENVIANDO TRAMA NACK (21)
                 {   
                     EnviarTramaControl(interfaz, mac_origen, mac_destino, tipo, direccion, 21, numeroTrama);
-                    MostrarTrama('E', direccion, 21, numeroTrama, ' ');
                     cout << endl;
+                    MostrarTrama('E', direccion, 21, numeroTrama, ' ');
                     primeraIteracion = false;
 
                     // SWAP numeroTrama
