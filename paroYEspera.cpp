@@ -281,7 +281,7 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
 
     // INTRODUCCION DE ERRORES AL PULSAR F4 - VERSION 5
     unsigned char correccion; // variable auxiliar para corregir la trama enviada
-    int numErrores = 0; // cuenta el numero de errores introducidos TODO VERSION 5
+    int numErrores = 0; // cuenta el numero de errores introducidos 
 
     if (flujoLectura.is_open())
     {
@@ -291,12 +291,12 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
             flujoLectura.read(cadena, 254);
             longitudCadena = flujoLectura.gcount();
             unsigned char BCE = CalculoBCE(longitudCadena, cadena);
-            control = 2; // NUMERO PARA STX // ESTAMOS ENVIANDO TRAMAS DE DATOS
+            control = 2; // NUMERO PARA STX ESTAMOS ENVIANDO TRAMAS DE DATOS
 
             // SI SE HA PULSADO F4, INCREMENTO numErrores
             ComprobarPulsacionF4(numErrores);
 
-            // Introducimos el error si se ha pulsado F4
+            // Introducimos el error si se ha pulsado F4 durante el protocolo
             if(numErrores != 0) {
                 cout << "INTRODUCIENDO ERROR..." << endl;
                 correccion = cadena[0]; // Guardamos aqui el dato correcto para luego
@@ -314,13 +314,18 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
                 RecibirTramaControl(interfaz, direccion, control, numeroTramaRecibida);
 
                 // TODO VERSION 5 INTRODUCCION DE ERROES
-                // if (control == 21) // 21: Trama NACK - ERROR
-                // {                  // Si envian una trama NACK, corregimos los datos y los enviamos de nuevo TODO VERSION 5
-                //     control = 2;
-                //     MostrarTrama('R', direccion, control, numeroTrama, ' ');
-                //     // ENVIAMOS LA RESPUESTA
-                //     EnviarTramaDatos(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama, longitudCadena, (unsigned char *)cadena, BCE);
-                // }
+                if (control == 21) // 21: Trama NACK - ERROR
+                {                  // Si envian una trama NACK, corregimos los datos y los enviamos de nuevo TODO VERSION 5
+                    cadena[0] = correccion;
+                    control = 2;   
+                    MostrarTrama('R', direccion, control, numeroTrama, ' ');
+                    cout << endl;
+
+                    // ENVIAMOS LA RESPUESTA, AHORA CORREGIDA
+                    EnviarTramaDatos(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama, longitudCadena, (unsigned char *)cadena, BCE);
+                    MostrarTrama('E', direccion, control, numeroTrama, ' ');
+                    cout << endl;
+                }
             }
 
             // Mostramos la trama de respuesta del esclavo:

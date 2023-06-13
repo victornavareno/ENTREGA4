@@ -149,5 +149,7 @@ void EsclavoSondeo(interface_t *interfaz, unsigned char mac_origen[6], unsigned 
     }
 
     cout << endl
-         << "Fin de sondeo por parte del Esclavo" << endl;
+         << "Fin de sondeo por parte del Esclavo";
+    cout << endl
+         << "Pulse Esc para salir..." << endl;
 }

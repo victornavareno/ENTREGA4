@@ -44,7 +44,7 @@ void SeleccionModoEnvio(int modo, int numGrupo, interface_t *interfaz, unsigned 
         printf("    [F1]  - Envío de caracteres interactivo\n");
         printf("    [F2]  - Envío de un fichero\n");
         printf("    [F3]  - Protocolo paro y espera\n");
-        //printf("    [F4]  - Introduccion de errores durante el protocolo\n");
+        printf("    [F4]  - Introduccion de errores durante el protocolo\n");
         printf("    [ESC] - Salir\n");
         cout << endl;
     }
@@ -54,7 +54,7 @@ void SeleccionModoEnvio(int modo, int numGrupo, interface_t *interfaz, unsigned 
         printf("Selección de modo:\n");
         printf("    [F1]  - Envío de caracteres interactivo\n");
         printf("    [F3]  - Protocolo paro y espera\n");
-        // printf("    [F4]  - Introduccion de errores durante el protocolo\n");
+        printf("    [F4]  - Introduccion de errores durante el protocolo\n");
         printf("    [ESC] - Salir\n");
         cout << endl;
     }
