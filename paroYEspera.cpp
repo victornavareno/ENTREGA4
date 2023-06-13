@@ -194,6 +194,9 @@ void MostrarTrama(unsigned char tipo, unsigned char direccion, unsigned char con
         case 6:
             cout << "ACK  " << numeroTrama << endl;
             break;
+        case 21:
+            cout << "NACK  " << numeroTrama << endl;
+            break;
         default:
             cout << "EOT  " << numeroTrama << endl;
             break;

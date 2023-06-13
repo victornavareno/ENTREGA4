@@ -31,7 +31,7 @@ void MaestroSondeo(interface_t *interfaz, unsigned char mac_origen[6], unsigned 
     if (control == 6)
     {
         MostrarTrama('R', direccion, control, numeroTrama, ' '); // como es de control, añadimos ' ' en lugar de BCE
-        cout << endl;                                          
+        cout << endl;
     }
 
     // ### ESCRITURA EN FICHERO ######
@@ -45,8 +45,8 @@ void MaestroSondeo(interface_t *interfaz, unsigned char mac_origen[6], unsigned 
     while (control != 4 && !fin)
     {
         RecibirTramaParoyEspera(interfaz, direccion, control, numeroTrama, cadena, longitudCadena);
-
-        if(control != 4){ // AUN NO HEMOS RECIBIDO LA TRAMA 'EOT'(4)
+        if (control != 4)
+        { // AUN NO HEMOS RECIBIDO LA TRAMA 'EOT'(4)
             if (longitudCadena != 0 && flujoOutput.is_open())
             {
                 flujoOutput.write(cadena, longitudCadena); // ESCRIBIMOS EN FICHERO
@@ -57,24 +57,29 @@ void MaestroSondeo(interface_t *interfaz, unsigned char mac_origen[6], unsigned 
                 control = 21; // PASARA A SER TRAMA NACK
             }
         }
-        
+
         else if (control == 4) // SI CONTROL 4: HEMOS RECIBIDO 'EOT', AHORA EL MAESTRO DEBE CONFIRMAR SI SEGUIR CON LA COMUNICACION O NO
         {
             while (!fin)
             {
-                cout << endl;
-                MostrarTrama('R', direccion, control, numeroTrama, ' ');
+                bool primeraIteracion = true;
+
+                if(primeraIteracion){
+                    cout << endl;
+                    MostrarTrama('R', direccion, control, numeroTrama, ' '); // chapucilla pero bueno... funciona
+                }
 
                 // MUESTRO EL MENU PARA SEGUIR ENVIANDO TRAMAS O NO
                 mostrarMenuConfirmacion();
-                unsigned char teclaPulsada; 
+                unsigned char teclaPulsada;
                 teclaPulsada = getch(); // INPUT DEL USUARIO
 
-                if (teclaPulsada == 2)  // PULSACION DE 2: CONTINUAMOS CON LA COMUNICACION ENVIANDO TRAMA NACK (21)
-                {
+                if (teclaPulsada == '2') // PULSACION DE 2: CONTINUAMOS CON LA COMUNICACION ENVIANDO TRAMA NACK (21)
+                {   
                     EnviarTramaControl(interfaz, mac_origen, mac_destino, tipo, direccion, 21, numeroTrama);
-                    MostrarTrama('E', direccion, control, numeroTrama, ' ');
+                    MostrarTrama('E', direccion, 21, numeroTrama, ' ');
                     cout << endl;
+                    primeraIteracion = false;
 
                     // SWAP numeroTrama
                     if (numeroTrama == '0')
@@ -86,7 +91,7 @@ void MaestroSondeo(interface_t *interfaz, unsigned char mac_origen[6], unsigned 
                 }
 
                 // PULSACION DE 1 O TECLA ERRONEA - CERRAMOS LA COMUNICACION
-                else
+                else if (teclaPulsada != '2')
                 {
                     cout << "Cerrando comunicacion..." << endl;
                     control = 6;
@@ -117,14 +122,14 @@ void EsclavoSondeo(interface_t *interfaz, unsigned char mac_origen[6], unsigned 
     EnviarFicheroParoyEspera(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama);
 
     unsigned char numTramaEnviada = '0'; // LA PRIMERA TRAMA SERA 0 - SE UTILIZARA PARA ENVIAR TRAMAS
-    while (control != 6)    // EJECUTAMOS MIENTRAS NO RECIBAMOS UN ACK - CONTROL 6 (CONFIRMACION)
+    while (control != 6)                 // EJECUTAMOS MIENTRAS NO RECIBAMOS UN ACK - CONTROL 6 (CONFIRMACION)
     {
         // ENVIAMOS LA TRAMA EOT (4)
         EnviarTramaControl(interfaz, mac_origen, mac_destino, tipo, direccion, 4, numTramaEnviada);
-        MostrarTrama('E', direccion, 4, numeroTrama, ' '); // Mostramos el EOT del esclavo
+        MostrarTrama('E', direccion, 4, numTramaEnviada, ' '); // Mostramos el EOT del esclavo
 
-        // RECIBIMOS LA TRAMA DE RESPUESTA DE CONTINUAR O NO DEL MAESTRO - CONFIRMACION DE SALIDA ACK (6) 
-        RecibirTramaControl(interfaz, direccion, control, numeroTrama); 
+        // RECIBIMOS LA TRAMA DE RESPUESTA DE CONTINUAR O NO DEL MAESTRO - CONFIRMACION DE SALIDA ACK (6)
+        RecibirTramaControl(interfaz, direccion, control, numeroTrama);
 
         if (control == 21 || control == 6) // SI RECIBIMOS -> 21: NACK || 6: ACK
         {
@@ -137,7 +142,7 @@ void EsclavoSondeo(interface_t *interfaz, unsigned char mac_origen[6], unsigned 
         {
             numTramaEnviada = '1';
         }
-        else 
+        else
         {
             numTramaEnviada = '0';
         }
