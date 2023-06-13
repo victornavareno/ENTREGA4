@@ -249,17 +249,22 @@ void EnviarTramaDatos(interface_t *interfaz, unsigned char mac_origen[6], unsign
     free(trama);
 }
 
-// Comprueba si se ha pulsado la tecla F4 = '27 + O + S' 
-// Si se ha pulsado F4, cont I/O se incrementa. Usaremos este metodo para introducir errores pulsando f4
-void ComprobarPulsacionF4(int &cont) {
+// Comprueba si se ha pulsado la tecla F4 = '27 + O + S'
+// Si se ha pulsado F4, cont I/O se incrementa. Usaremos este metodo para introducir errores pulsando F4 durante el protocolo
+void ComprobarPulsacionF4(int &cont)
+{
     unsigned char teclaPulsada;
-    if(kbhit()) {
+    if (kbhit())
+    {
         teclaPulsada = getch();
-        if(teclaPulsada == 27) {
+        if (teclaPulsada == 27)
+        {
             teclaPulsada = getch();
-            if(teclaPulsada == 'O') {
+            if (teclaPulsada == 'O')
+            {
                 teclaPulsada = getch();
-                if(teclaPulsada == 'S') {
+                if (teclaPulsada == 'S')
+                {
                     __fpurge(stdin);
                     cont++;
                 }
@@ -277,11 +282,11 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
     char cadena[254]; // cadena a leer
     unsigned char numeroTramaRecibida;
     numeroTramaRecibida = ' ';
-    int longitudCadena;       // longitud de la trama a enviar (sirve para calcular BCE)
+    int longitudCadena; // longitud de la trama a enviar (sirve para calcular BCE)
 
     // INTRODUCCION DE ERRORES AL PULSAR F4 - VERSION 5
     unsigned char correccion; // variable auxiliar para corregir la trama enviada
-    int numErrores = 0; // cuenta el numero de errores introducidos 
+    int numErrores = 0;       // cuenta el numero de errores introducidos
 
     if (flujoLectura.is_open())
     {
@@ -297,10 +302,11 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
             ComprobarPulsacionF4(numErrores);
 
             // Introducimos el error si se ha pulsado F4 durante el protocolo
-            if(numErrores != 0) {
+            if (numErrores != 0)
+            {
                 cout << "INTRODUCIENDO ERROR..." << endl;
                 correccion = cadena[0]; // Guardamos aqui el dato correcto para luego
-                cadena[0] = 184; // Introducimos el caracter especial (Error)
+                cadena[0] = 184;        // Introducimos el caracter especial (Error)
                 numErrores--;
             }
 
@@ -316,8 +322,8 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
                 // TODO VERSION 5 INTRODUCCION DE ERROES
                 if (control == 21) // 21: Trama NACK - ERROR
                 {                  // Si envian una trama NACK, corregimos los datos y los enviamos de nuevo TODO VERSION 5
+                    control = 2;   // LA TRAMA CORREGIDA VUELVE A SER DE DATOS
                     cadena[0] = correccion;
-                    control = 2;   
                     MostrarTrama('R', direccion, control, numeroTrama, ' ');
                     cout << endl;
 
@@ -339,7 +345,8 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
                 numeroTrama = '1';
         }
     }
-    else{
+    else
+    {
         cout << "   ####  ERROR AL ABRIR EL FICHERO  ####   " << endl;
     }
 
@@ -353,6 +360,7 @@ char CalculoBCE(int longitudCadena, char cadena[])
 {
     if (longitudCadena > 0) // Siempre debe ser mayor que 0
     {
+        
         char BCE;
         BCE = cadena[0]; // inicializamos al primer valor (0)
 
