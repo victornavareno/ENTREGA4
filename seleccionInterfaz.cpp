@@ -76,7 +76,7 @@ void imprimirMac(interface_t interfaz)
         }
         printf("%02X", interfaz.MACaddr[i]); // el -%02 indica que queremos mínimo 2 cifras, la X indica que el formato de salida será hexadecimal con letras mayúsculas
     }
-    printf("\n"); // salto de linea
+    cout << endl; 
     delete ifacePtrAux;
 }
 

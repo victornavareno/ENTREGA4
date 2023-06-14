@@ -2,15 +2,20 @@
 
 using namespace std;
 
-bool MaestroParoYEspera(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2])
-{
-    // MENU SELECCION PAROYESPERA  -  MAESTRO
+void ImprimirMenuParoEsperaMaestro(){
     cout << "Seleccione el tipo de operacion: " << endl;
     cout << "[1] Operacion seleccion. " << endl;
     cout << "[2] Operacion sondeo. " << endl;
     cout << "[3] Salir. " << endl
          << endl;
+}
 
+bool MaestroParoYEspera(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2])
+{
+    // MENU SELECCION PAROYESPERA  -  MAESTRO
+    ImprimirMenuParoEsperaMaestro();
+
+    // INPUT DEL USUARIO
     unsigned char teclaPulsada = getch();
     if (teclaPulsada == '1') // MODO SELECCION MAESTRO
     {
@@ -327,10 +332,10 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
             // Introducimos el error si se ha pulsado F4 durante el protocolo
             if (numErrores != 0)
             {
-                cout << "INTRODUCIENDO ERROR..." << endl;
                 correccion = cadena[0]; // Guardamos aqui el dato correcto para luego
                 cadena[0] = 184;        // Introducimos el caracter especial (Error)
                 numErrores--;           // DECREMENTAMOS EL NUMERO DE ERRORES A INTRODUCIR
+                cout << "INTRODUCIENDO ERROR..." << endl;
             }
 
             // Enviamos la trama de datos (QUE AHORA PUEDE CONTENER ERRORES)

@@ -1,7 +1,7 @@
 #include "sondeo.h"
 #include "paroYEspera.h"
 
-void mostrarMenuConfirmacion()
+void MostrarMenuConfirmacion()
 {
     cout << endl;
     cout << "¿Acepta el cierre de la comunicacion?" << endl;
@@ -71,7 +71,7 @@ void MaestroSondeo(interface_t *interfaz, unsigned char mac_origen[6], unsigned 
                 }
 
                 // MUESTRO EL MENU PARA SEGUIR ENVIANDO TRAMAS O NO
-                mostrarMenuConfirmacion();
+                MostrarMenuConfirmacion();
                 unsigned char teclaPulsada;
                 teclaPulsada = getch(); // INPUT DEL USUARIO
 
@@ -140,5 +140,4 @@ void EsclavoSondeo(interface_t *interfaz, unsigned char mac_origen[6], unsigned 
          << "Fin de sondeo por parte del Esclavo";
     cout << endl
          << "Presione ESC para salir..." << endl;
-         
 }
