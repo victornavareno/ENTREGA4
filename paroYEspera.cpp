@@ -32,6 +32,20 @@ bool MaestroParoYEspera(interface_t *interfaz, unsigned char mac_origen[6], unsi
     return false;
 }
 
+// INVIERTE EL VALOR DE NUMEROTRAMA PASADO POR PARAMETROS
+// SI ES 0 LO ACTUALIZA A 1
+// SI ES 1 LO ACTUALIZA A 0
+void SwapNumeroTrama(unsigned char &numeroTrama)
+{
+    if (numeroTrama == '1'){
+        numeroTrama = '0';
+    }
+    else if (numeroTrama == '0'){
+        numeroTrama = '1';
+    }
+    else cout << endl << "  #### ERROR, NUMERO DE TRAMA INCORRECTO ####" << endl;
+}
+
 void MaestroSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2])
 {
     unsigned char direccion = 'R'; // El valor de Dirección será ‘R’ operación de Selección - 'T' operación de Sondeo
@@ -92,8 +106,10 @@ void EsclavoSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
     char cadena[254];
     unsigned char longitud;
 
-    // ENVIO LA TRAMA DE RESPUESTA CORRECTA(ACK) PARA ESTABLECER EL PROTOCOLO DE SELECCION
+    // ENVIO LA TRAMA DE RESPUESTA CORRECTA(ACK) - codigo 6 PARA ESTABLECER EL PROTOCOLO DE SELECCION
     EnviarTramaControl(interfaz, mac_origen, mac_destino, tipo, direccion, 6, numeroTrama);
+    MostrarTrama('E', direccion, 6, numeroTrama, ' ');
+    cout << endl;
 
     bool fin = false;
     while (!fin && control != 4)
@@ -132,20 +148,24 @@ void EsclavoSeleccion(interface_t *interfaz, unsigned char mac_origen[6], unsign
 bool EsclavoParoYEspera(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2])
 {
     cout << "Estas en modo esclavo" << endl;
-    unsigned char direccion, control, NTrama;
 
-    RecibirTramaControl(interfaz, direccion, control, NTrama);
+    // INICIALIZAMOS VARIABLES QUE SERAN ASIGNADAS LLAMANDO A LOS METODOS (SON INPUT / OUTPUT):
+    unsigned char direccion;
+    unsigned char control;
+    unsigned char numeroTrama;
+
+    RecibirTramaControl(interfaz, direccion, control, numeroTrama);
 
     if (direccion == 'R')
     { // SI RECIBE UNA R ES PROTOCOLO SELECCION
-        MostrarTrama('R', direccion, control, NTrama, ' ');
-        EsclavoSeleccion(interfaz, mac_origen, mac_destino, tipo, direccion, control, NTrama);
+        MostrarTrama('R', direccion, control, numeroTrama, ' ');
+        EsclavoSeleccion(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama);
     }
 
     if (direccion == 'T')
     { // SI RECIBE UNA 'T' ES PROTOCOLO SONDEO
-        MostrarTrama('R', direccion, control, NTrama, ' ');
-        EsclavoSondeo(interfaz, mac_origen, mac_destino, tipo, direccion, control, NTrama);
+        MostrarTrama('R', direccion, control, numeroTrama, ' ');
+        EsclavoSondeo(interfaz, mac_origen, mac_destino, tipo, direccion, control, numeroTrama);
     }
     return true;
 }
@@ -199,7 +219,7 @@ void MostrarTrama(unsigned char tipo, unsigned char direccion, unsigned char con
             break;
         default:
             // cout << "EOT  " << numeroTrama << endl;
-            cout << " ### ERROR LA TRAMA NO POSEE UN VALOR DE CONTROL CORRECTO ###" << endl;
+            cout << " ### ERROR LA TRAMA NO POSEE UN VALOR DE CONTROL CORRECTO ### " << endl;
             break;
         }
     }
@@ -218,35 +238,37 @@ void RecibirTramaControl(interface_t *interfaz, unsigned char &direccion, unsign
             recibida = true;
             // if (trama.packet[12] == 0x88 && trama.packet[13] == 0x08){ // NO HACE FALTA COMPROBAR
             // Extraemos la direccion, control y numero de trama de la trama recibida, y actualizamos los valores input-output
-            direccion = trama.packet[14];
-            control = trama.packet[15];
-            numeroTrama = trama.packet[16];
+            direccion = trama.packet[14];   // DIRECCION EN EL BYTE 14 DEL PAQUETE RECIBIDO
+            control = trama.packet[15];     // CONTROL EN EL BYTE 15 ''
+            numeroTrama = trama.packet[16]; // NUMERO TRAMA (0) O (1) EN EL BYTE 16
         }
     }
 }
 
-// Envia las tramas de datos
+// ENVIA LA TRAMA DE DATOS O STX
 void EnviarTramaDatos(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2], unsigned char direccion, unsigned char control, unsigned char numeroTrama, unsigned char longitud, unsigned char cadena[], unsigned char BCE)
 {
-    int i = 0;
-    unsigned char datos[259];
+    unsigned char datos[259]; // PAQUETE DE 259 BYTES
     datos[0] = direccion;
     datos[1] = control;
     datos[2] = numeroTrama;
     datos[3] = longitud;
 
-    while (i < longitud)
+    int j = 0;
+    for (int i = 0; i < longitud; i++)
     {
         datos[4 + i] = cadena[i];
-        i++;
+        j++;
     }
+    datos[4 + j] = BCE; // AÑADIMOS EL BCE A LA TRAMA
 
-    datos[4 + i] = BCE;
+    // CONSTRUIMOS  Y ENVIAMOS LA TRAMA:
     unsigned char *trama = BuildFrame(mac_origen, mac_destino, tipo, datos);
     SendFrame(interfaz, trama, longitud + 5);
+    free(trama);
+
     MostrarTrama('E', direccion, control, numeroTrama, BCE);
     cout << endl;
-    free(trama);
 }
 
 // Comprueba si se ha pulsado la tecla F4 = '27 + O + S'
@@ -272,6 +294,7 @@ void ComprobarPulsacionF4(int &cont)
         }
     }
 }
+
 
 // ENVIA EL FICHERO "EProtoc.txt" POR PARO Y ESPERA
 void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2], unsigned char direccion, unsigned char control, unsigned char numeroTrama)
@@ -307,7 +330,7 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
                 cout << "INTRODUCIENDO ERROR..." << endl;
                 correccion = cadena[0]; // Guardamos aqui el dato correcto para luego
                 cadena[0] = 184;        // Introducimos el caracter especial (Error)
-                numErrores--;
+                numErrores--;           // DECREMENTAMOS EL NUMERO DE ERRORES A INTRODUCIR
             }
 
             // Enviamos la trama de datos (QUE AHORA PUEDE CONTENER ERRORES)
@@ -337,11 +360,7 @@ void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6]
             MostrarTrama('R', direccion, control, numeroTrama, ' ');
 
             // INVERTIMOS VALORES DE numeroTrama PARA EL SIGUIENTE ENVIO
-            if (numeroTrama == '1')
-                numeroTrama = '0';
-
-            else if (numeroTrama == '0')
-                numeroTrama = '1';
+            SwapNumeroTrama(numeroTrama);
         }
     }
     else
@@ -373,8 +392,8 @@ char CalculoBCE(int longitudCadena, char cadena[])
 
 void RecibirTramaParoyEspera(interface_t *interfaz, unsigned char &direccion, unsigned char &control, unsigned char &numeroTrama, char cadena[], unsigned char &longitud)
 {
-    bool recibida = false;
-    while (!recibida)
+    bool tramaRecibida = false;
+    while (!tramaRecibida)
     {
         apacket_t trama = ReceiveFrame(interfaz);
         if (trama.packet != NULL)
@@ -382,7 +401,7 @@ void RecibirTramaParoyEspera(interface_t *interfaz, unsigned char &direccion, un
             direccion = trama.packet[14];
             control = trama.packet[15];
             numeroTrama = trama.packet[16];
-            recibida = true;
+            tramaRecibida = true;
 
             if (control == 2)
             {

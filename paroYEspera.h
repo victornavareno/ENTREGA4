@@ -28,6 +28,9 @@ void RecibirTramaControl(interface_t *interfaz, unsigned char &direccion, unsign
 // ENVIA UN FICHERO DIVIDIDO EN TRAMAS, PERO POR PARO Y ESPERA
 void EnviarFicheroParoyEspera(interface_t *interfaz, unsigned char mac_origen[6], unsigned char mac_destino[6], unsigned char tipo[2],unsigned char direccion, unsigned char control, unsigned char numeroTrama);
 
+// INVIERTE EL NUMERO DE TRAMA PASADO POR PARAMETROS, INPUTOUTPUT
+void SwapNumeroTrama(unsigned char &numeroTrama);
+
 // CALCULA EL BCE 
 char CalculoBCE(int longitud, char cadena[]);
 
@@ -35,3 +38,4 @@ bool EsclavoParoYEspera(interface_t *interfaz, unsigned char mac_origen[6], unsi
 
 // RECIBIR TRAMAS EN PROTOCOLO PARO Y ESPERA
 void RecibirTramaParoyEspera(interface_t *interfaz, unsigned char &direccion, unsigned char &control, unsigned char &numeroTrama, char cadena[], unsigned char &longitud);
+

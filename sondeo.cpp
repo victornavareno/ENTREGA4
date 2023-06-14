@@ -83,12 +83,7 @@ void MaestroSondeo(interface_t *interfaz, unsigned char mac_origen[6], unsigned 
                     primeraIteracion = false;
 
                     // SWAP numeroTrama
-                    if (numeroTrama == '0')
-                    {
-                        numeroTrama = '1';
-                    }
-                    else
-                        numeroTrama = '0';
+                    SwapNumeroTrama(numeroTrama);
                 }
 
                 // PULSACION DE 1 O TECLA ERRONEA - CERRAMOS LA COMUNICACION
@@ -138,16 +133,12 @@ void EsclavoSondeo(interface_t *interfaz, unsigned char mac_origen[6], unsigned 
         }
 
         // SWAP PARA RESPUESTA
-        if (numTramaEnviada == '0')
-        {
-            numTramaEnviada = '1';
-        }
-        else
-        {
-            numTramaEnviada = '0';
-        }
+        SwapNumeroTrama(numTramaEnviada);
     }
 
     cout << endl
          << "Fin de sondeo por parte del Esclavo";
+    cout << endl
+         << "Presione ESC para salir..." << endl;
+         
 }
